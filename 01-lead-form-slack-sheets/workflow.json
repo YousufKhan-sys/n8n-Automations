@@ -1,0 +1,103 @@
+{
+  "name": "Lead Form → Slack + Google Sheets",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead",
+        "options": {}
+      },
+      "id": "receive-lead-webhook",
+      "name": "Receive lead webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 96],
+      "webhookId": "REPLACE_AUTO_GENERATED"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "f-name", "name": "name", "value": "={{ $json.body.name }}", "type": "string" },
+            { "id": "f-email", "name": "email", "value": "={{ $json.body.email }}", "type": "string" },
+            { "id": "f-service", "name": "service", "value": "={{ $json.body.service }}", "type": "string" },
+            { "id": "f-msg", "name": "message", "value": "={{ $json.body.message }}", "type": "string" },
+            {
+              "id": "f-alert",
+              "name": "alert",
+              "value": "={{ '🧱 New lead from website' + '\\n\\nName: ' + $json.body.name + '\\nEmail: ' + $json.body.email + '\\nService: ' + ($json.body.service || 'Not specified') + '\\n\\n' + $json.body.message }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "format-lead-fields",
+      "name": "Format lead fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [224, 96]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": { "__rl": true, "mode": "name", "value": "#leads", "cachedResultName": "#leads" },
+        "text": "={{ $json.alert }}",
+        "otherOptions": {}
+      },
+      "id": "post-lead-to-slack",
+      "name": "Post lead to Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [448, 0]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "YOUR_SPREADSHEET_ID",
+          "cachedResultName": "Lead sheet"
+        },
+        "sheetName": { "__rl": true, "mode": "name", "value": "Lead Form", "cachedResultName": "Lead Form" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now.toFormat('yyyy-MM-dd HH:mm') }}",
+            "Name": "={{ $json.name }}",
+            "Email": "={{ $json.email }}",
+            "Service": "={{ $json.service }}",
+            "Message": "={{ $json.message }}"
+          },
+          "schema": [
+            { "id": "Timestamp", "displayName": "Timestamp", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": false },
+            { "id": "Name", "displayName": "Name", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true },
+            { "id": "Email", "displayName": "Email", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true },
+            { "id": "Service", "displayName": "Service", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": false },
+            { "id": "Message", "displayName": "Message", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true }
+          ]
+        },
+        "options": {}
+      },
+      "id": "log-lead-to-google-sheets",
+      "name": "Log lead to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [448, 192]
+    }
+  ],
+  "connections": {
+    "Receive lead webhook": {
+      "main": [[ { "node": "Format lead fields", "type": "main", "index": 0 } ]]
+    },
+    "Format lead fields": {
+      "main": [[
+        { "node": "Post lead to Slack", "type": "main", "index": 0 },
+        { "node": "Log lead to Google Sheets", "type": "main", "index": 0 }
+      ]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}
