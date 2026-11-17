@@ -45,8 +45,3 @@ Website form ──POST──▶ Webhook ──▶ Format lead fields ──┬�
    (it looks like `https://<your-n8n-host>/webhook/lead`).
 3. Add `form-example.js` to your website (adjust the form field names to `name`, `email`, `service`, `message`), replacing `YOUR_N8N_WEBHOOK_URL` with the production URL.
 4. Submit a test lead — it should appear in Slack and as a new row in the sheet within a second or two.
-
-> **Hosting note:** if your n8n runs behind a dev tunnel (e.g. ngrok), the tunnel URL changes on restart — use a stable n8n instance (self-hosted with a domain, or n8n Cloud) for a live site.
-
-## Cost
-Runs on the free tiers of everything involved: n8n (self-hosted free / Cloud free tier), Slack free plan, Google Sheets. **$0/month.**
